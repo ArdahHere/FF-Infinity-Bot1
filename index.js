@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 const { joinVoiceChannel } = require("@discordjs/voice");
 
 const client = new Client({
@@ -47,131 +47,8 @@ client.once("clientReady", async () => {
 
     console.log("Joined voice!");
 
-  } catch(err) {
+  } catch (err) {
     console.log("Voice error:", err.message);
-  }
-
-
-
-  // RULES
-  const rulesChannel = client.channels.cache.get("1527006668649664694");
-
-  if (rulesChannel) {
-
-    const rulesEmbed = new EmbedBuilder()
-      .setColor("#0099ff")
-      .setTitle("🔥 WELCOME TO FF INFINITY 🔥")
-      .setDescription(`
-♾️ **The Ultimate Free Fire Community**
-
-━━━━━━━━━━━━━━━━━━
-
-📜 **SERVER RULES**
-
-1️⃣ Respect Members
-• احترم جميع الأعضاء.
-
-2️⃣ No Toxicity
-• ممنوع المشاكل والاستفزاز.
-
-3️⃣ No Spam
-• ممنوع السبام.
-
-4️⃣ No Hacks / Cheats
-• ممنوع الغش.
-
-5️⃣ No Advertising
-• ممنوع نشر روابط بدون إذن.
-
-6️⃣ Voice Rules
-• احترم الجميع.
-
-7️⃣ Free Fire Rules
-• العب بنزاهة.
-
-8️⃣ Staff Rules
-• احترم الإدارة.
-
-━━━━━━━━━━━━━━━━━━
-
-⚠️ Punishments
-
-• Warning
-• Mute
-• Kick
-• Ban
-
-━━━━━━━━━━━━━━━━━━
-
-🔥 Have Fun & Get Booyah!
-`)
-      .setFooter({
-        text: "FF Infinity • Rules"
-      });
-
-
-    rulesChannel.send({
-      content: "@everyone @here",
-      embeds: [rulesEmbed],
-      allowedMentions: {
-        parse: ["everyone"]
-      }
-    });
-
-  }
-
-
-
-  // ANNOUNCEMENT
-  const announceChannel = client.channels.cache.get("1527006713281249330");
-
-  if (announceChannel) {
-
-    const announceEmbed = new EmbedBuilder()
-      .setColor("#0099ff")
-      .setTitle("👋 Welcome To FF Infinity 🔥")
-      .setDescription(`
-🎮 The Ultimate Free Fire Community
-
-━━━━━━━━━━━━━━━━━━
-
-• Find teammates 👫
-• Play Squad & Ranked 🔥
-• Join Tournaments 🏆
-• Share clips 🎥
-• Meet players 🌍
-
-━━━━━━━━━━━━━━━━━━
-
-📌 Important:
-
-✅ Read rules
-✅ Choose roles
-✅ Respect everyone
-
-━━━━━━━━━━━━━━━━━━
-
-🏆 Events:
-
-🔥 Tournaments
-🎁 Giveaways
-🎮 Custom Rooms
-
-❤️ Thanks for joining FF Infinity
-`)
-      .setFooter({
-        text: "FF Infinity • Community"
-      });
-
-
-    announceChannel.send({
-      content: "@everyone @here",
-      embeds: [announceEmbed],
-      allowedMentions: {
-        parse: ["everyone"]
-      }
-    });
-
   }
 
 });
@@ -181,6 +58,7 @@ client.once("clientReady", async () => {
 // MEMBER JOIN
 client.on("guildMemberAdd", async (member) => {
 
+  // INVITE LOGS
   try {
 
     const newInvites = await member.guild.invites.fetch();
@@ -201,42 +79,74 @@ client.on("guildMemberAdd", async (member) => {
     }
 
 
-    const log = member.guild.channels.cache.get("1527104163652046969");
+    const inviteLog = member.guild.channels.cache.get("1527104163652046969");
 
-    if (log) {
+    if (inviteLog) {
 
-      log.send(
-        inviter
-        ? `📩 ${member.user.username} joined.\nInvited by ${inviter.username}`
-        : `📩 ${member.user.username} joined.\nI couldn't find who invited them.`
-      );
+      if (inviter) {
+
+        inviteLog.send(
+          `📩 **${member.user.username}** joined.\n` +
+          `Invited by **${inviter.username}**.`
+        );
+
+      } else {
+
+        inviteLog.send(
+          `📩 **${member.user.username}** joined.\n` +
+          `I couldn't find who invited them.`
+        );
+
+      }
 
     }
 
 
-  } catch(err) {
-    console.log(err.message);
+    invitesCache.set(
+      member.guild.id,
+      new Map(newInvites.map(inv => [inv.code, inv.uses]))
+    );
+
+
+  } catch (err) {
+    console.log("Invite error:", err.message);
   }
 
 
 
+  // WELCOME
   const welcome = member.guild.channels.cache.get("1527026433455689808");
 
   if (welcome) {
     welcome.send(`👋 Welcome ${member} to FF Infinity! 🎉`);
   }
 
+
+
+  // MEMBER ROLE
+  try {
+
+    const memberRole = member.guild.roles.cache.get("1527015591985152110");
+
+    if (memberRole) {
+      await member.roles.add(memberRole);
+    }
+
+  } catch (err) {
+    console.log("Role error:", err.message);
+  }
+
 });
 
 
 
-// LEAVE
+// MEMBER LEAVE
 client.on("guildMemberRemove", async (member) => {
 
   const goodbye = member.guild.channels.cache.get("1527026412475777134");
 
   if (goodbye) {
-    goodbye.send(`👋 Goodbye ${member.user.tag}`);
+    goodbye.send(`👋 Goodbye ${member.user.tag}, see you again!`);
   }
 
 });
